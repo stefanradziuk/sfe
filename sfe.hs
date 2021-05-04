@@ -8,7 +8,7 @@ yearsTillWrittenOff = 30
 
 rpi = 0.026
 
-additionalInterest = 0.03
+maxAdditionalInterest = 0.03
 
 repaymentRate = 0.09
 
@@ -40,10 +40,16 @@ debtRepayment debt earnings = min debt (max 0 repayment)
   where
     repayment = (earnings - repaymentThreshold) * repaymentRate
 
+additionalInterest :: Earnings -> Float
+additionalInterest earnings = min maxAdditionalInterest (max 0 additionalInterest)
+  where
+    additionalInterestSlope = maxAdditionalInterest / (higherInterestThreshold - repaymentThreshold)
+    additionalInterest = additionalInterestSlope * (earnings - repaymentThreshold)
+
 nextYearData :: YearData -> YearData
 nextYearData (debt, earnings, payment) = (debt', earnings', debtRepayment debt' earnings')
   where
-    debt' = (debt - payment) * (1 + rpi + additionalInterest)
+    debt' = (debt - payment) * (1 + rpi + additionalInterest earnings')
     earnings' = earnings * (1 + salaryIncreaseRate)
 
 run :: Earnings -> [YearData]
